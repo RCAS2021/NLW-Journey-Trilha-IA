@@ -1,14 +1,14 @@
 import os
+import bs4
+from langchain import hub
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_community.agent_toolkits.load_tools import load_tools
-from langchain.agents import create_react_agent, AgentExecutor
-from langchain import hub
-
 from langchain_community.document_loaders import WebBaseLoader
 from langchain_community.vectorstores import Chroma
+from langchain.agents import create_react_agent, AgentExecutor
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-
-import bs4
+from langchain_core.prompts import PromptTemplate
+from langchain_core.runnables import RunnableSequence
 
 
 llm = ChatOpenAI(model='gpt-3.5-turbo')
@@ -44,3 +44,29 @@ def loadData():
     vectorstore = Chroma.from_documents(documents=splits, embedding=OpenAIEmbeddings)
     retriever = vectorstore.as_retriever()
     return retriever
+
+def getRelevantDocs(query):
+    retriever = loadData()
+    relevant_documents = retriever.invoke(query)
+    return relevant_documents
+
+def supervisorAgent(query, llm, webContext, relevant_documents):
+    prompt_template = """
+    Você é um gerente de uma agência de viagens. Sua resposta final deverá ser um roteiro de viagens completo e detalhado.
+    Utilize o contexto de eventos e preços de passagens, o input do usuário e também os documentos relevantes para elaborar o roteiro.
+
+    Contexto: {webContext}
+    Documentos relevantes: {relevant_documents}
+    Usuário: {query}
+    Assistente:
+    """ 
+    prompt = PromptTemplate(
+        input_variables=['webContext', 'relevant_documents', 'query'],
+        template=prompt_template
+    )
+
+    sequence = RunnableSequence(prompt | llm)
+
+    response = sequence.invoke({"webContext": webContext, "relevant_documents": relevant_documents, "query": query})
+
+    return response
