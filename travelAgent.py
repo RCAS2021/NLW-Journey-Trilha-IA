@@ -13,11 +13,6 @@ from langchain_core.runnables import RunnableSequence
 
 llm = ChatOpenAI(model='gpt-3.5-turbo')
 
-query = """
-    Vou viajar para Londres em agosto de 2024. Quero que faça um roteiro de viagem para mim com eventos que irão ocorrer na data da viagem e com o preço da passagem do Rio de Janeiro para Londres.
-"""
-
-
 def research_agent(query, llm):
     # Ferramentas
     tools = load_tools(['ddg-search', 'wikipedia'], llm=llm)
@@ -25,7 +20,7 @@ def research_agent(query, llm):
     prompt = hub.pull('hwchase17/react')
     # Criação do agente react (Reason + Act)
     agent = create_react_agent(llm, tools, prompt)
-    agent_executor = AgentExecutor(agent=agent, tools=tools, prompt=prompt, verbose=True)
+    agent_executor = AgentExecutor(agent=agent, tools=tools, prompt=prompt, verbose=False)
     webContext = agent_executor.invoke({'input': query})
     return webContext['output']
 
@@ -48,7 +43,7 @@ def loadData():
 def getRelevantDocs(query):
     retriever = loadData()
     relevant_documents = retriever.invoke(query)
-    print(relevant_documents)
+    #print(relevant_documents)
     return relevant_documents
 
 def supervisorAgent(query, llm, webContext, relevant_documents):
@@ -78,4 +73,7 @@ def getResponse(query, llm):
     response = supervisorAgent(query, llm, webContext, relevant_documents)
     return response
 
-print(getResponse(query, llm).content)
+def lambda_handler(event, context):
+    query = event.get("question")
+    response = getResponse(query, llm).content
+    return {"body": response, "status": 200}
