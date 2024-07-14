@@ -10,6 +10,8 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnableSequence
 
+# Pegando chave da open ai através de chave de ambiente (environment variables)
+OPENAI_API_KEY = os.environ['OPENAI_API_KEY']
 
 llm = ChatOpenAI(model='gpt-3.5-turbo')
 
