@@ -31,7 +31,7 @@ def research_agent(query, llm):
 
 def loadData():
     loader = WebBaseLoader(
-        webpaths=("https://www.dicasdeviagem.com/inglaterra/"),
+        web_paths=("https://www.dicasdeviagem.com/inglaterra/"),
         bs_kwargs=dict(parse_only=bs4.SoupStrainer(class_=("postcontentwrap", "pagetitleloading background-imaged loading-dark")))
     )
     docs = loader.load()
@@ -70,3 +70,11 @@ def supervisorAgent(query, llm, webContext, relevant_documents):
     response = sequence.invoke({"webContext": webContext, "relevant_documents": relevant_documents, "query": query})
 
     return response
+
+def getResponse(query, llm):
+    webContext = research_agent(query, llm)
+    relevant_documents = getRelevantDocs(query)
+    response = supervisorAgent(query, llm, webContext, relevant_documents)
+    return response
+
+print(getResponse(query, llm))
