@@ -9,6 +9,7 @@ from langchain.agents import create_react_agent, AgentExecutor
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnableSequence
+import json
 
 # Pegando chave da open ai através de chave de ambiente (environment variables)
 OPENAI_API_KEY = os.environ['OPENAI_API_KEY']
@@ -76,6 +77,17 @@ def getResponse(query, llm):
     return response
 
 def lambda_handler(event, context):
-    query = event.get("question")
+    #query = event.get("question")
+    body = json.load(event.get('body', {}))
+    query = body.get('question', 'Parametro question nao fornecido')
     response = getResponse(query, llm).content
-    return {"body": response, "status": 200}
+    return {
+        "statusCode": 200,
+        'headers': {
+            "Content-Type": "applcation/json"
+        },
+        "body": json.dumps({
+            "message": "Tarefa concluída com sucesso",
+            "details": response,
+        })
+        }
