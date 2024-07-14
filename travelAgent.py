@@ -78,7 +78,7 @@ def getResponse(query, llm):
 
 def lambda_handler(event, context):
     #query = event.get("question")
-    body = json.load(event.get('body', {}))
+    body = json.loads(event.get('body', {}))
     query = body.get('question', 'Parametro question nao fornecido')
     response = getResponse(query, llm).content
     return {
