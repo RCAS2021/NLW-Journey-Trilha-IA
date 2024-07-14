@@ -48,6 +48,7 @@ def loadData():
 def getRelevantDocs(query):
     retriever = loadData()
     relevant_documents = retriever.invoke(query)
+    print(relevant_documents)
     return relevant_documents
 
 def supervisorAgent(query, llm, webContext, relevant_documents):
@@ -77,4 +78,4 @@ def getResponse(query, llm):
     response = supervisorAgent(query, llm, webContext, relevant_documents)
     return response
 
-print(getResponse(query, llm))
+print(getResponse(query, llm).content)
